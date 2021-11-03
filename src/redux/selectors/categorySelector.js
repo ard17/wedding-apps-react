@@ -1,9 +1,9 @@
+const findCategoryById = (state, props) => {
+	const category = state.categoryState.categories.filter(
+		(v) => v.weca_id === props.action.id
+	);
+	console.log(props);
+	return category;
+};
 
-const findCategoryById= (state,props)=>{
-    const category = state.categoryState.categories.filter(v => v.cate_id === props.action.id);
-    return category;
-}
-
-
-
-export {findCategoryById}
+export { findCategoryById };

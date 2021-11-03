@@ -1,45 +1,44 @@
 import { Dialog, Transition } from '@headlessui/react';
 import React, { Fragment, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { connect } from 'react-redux';
-import { findCategoryById } from '../../redux/selectors/categorySelector';
-import { doUpdateCategoryRequest } from '../../redux/actions/category';
+import { useDispatch, useSelector } from 'react-redux';
+import { doTopupRequest } from '../../redux/actions/accPayment';
 
-function EditCategory(props) {
+export default function Topup(props) {
+	const dispatch = useDispatch();
+	const state = useSelector((state) => state.accPaymentState);
+
 	const [values, setValues] = useState({
-		weca_id: undefined,
-		weca_name: '',
+		acc_number: undefined,
+		acc_saldo: '',
 	});
 
 	useEffect(() => {
-		const { weca_id, weca_name } = props.categorySelected[0];
-		setValues({ ...values, weca_id: weca_id, weca_name: weca_name });
+		const { acc_number } = state.accPayment;
+		setValues({ ...values, acc_number: acc_number, acc_saldo: 0 });
 	}, [props.action.id]);
 
 	const handleChange = (name) => (event) => {
 		setValues({ ...values, [name]: event.target.value });
 	};
 
-	const onSubmit = async () => {
+	const onSubmit = async (e) => {
+		e.preventDefault();
 		const payload = {
-			weca_id: values.weca_id,
-			weca_name: values.weca_name.toUpperCase() || '',
+			acc_number: values.acc_number,
+			amount: values.acc_saldo,
+			baac_acc_bank: '12345642323',
+			baac_pin_number: '123456',
+			payt_type: 'topup',
 		};
-		props.updateCategory(payload);
+		dispatch(doTopupRequest(payload));
 		props.closeModal();
-		toast.success('Data has been updated.');
-
-		/* const result = await apiCategory.updateRow(data);
-        if (result.status === 200) {
-            props.closeModal();
-            props.setRefresh();
-            toast.success("Data has been updated.")
-        } */
+		toast.success('Saldo Updated.');
 	};
 
 	return (
 		<div>
-			<Transition appear show={props.isEditOpen} as={Fragment}>
+			<Transition appear show={props.isTopupOpen} as={Fragment}>
 				<Dialog
 					as="div"
 					static
@@ -80,17 +79,17 @@ function EditCategory(props) {
 									as="h3"
 									className="text-lg font-medium leading-6 text-gray-900"
 								>
-									Edit Category
+									Topup Saldo
 								</Dialog.Title>
 								<div className="mt-2">
 									<form action="#" method="POST">
 										<div className="col-span-6 sm:col-span-3">
 											<input
 												type="text"
-												name="weca_id"
-												value={values.weca_id}
+												name="acc_number"
+												value={values.acc_number}
 												onChange={handleChange(
-													'weca_id'
+													'acc_number'
 												)}
 												hidden
 											/>
@@ -98,14 +97,14 @@ function EditCategory(props) {
 												htmlFor="last-name"
 												className="block text-sm font-medium text-gray-700"
 											>
-												Category Name
+												Saldo
 											</label>
 											<input
 												type="text"
-												name="weca_name"
-												value={values.weca_name}
+												name="acc_saldo"
+												value={values.acc_saldo}
 												onChange={handleChange(
-													'weca_name'
+													'acc_saldo'
 												)}
 												className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 uppercase rounded-md"
 											/>
@@ -138,13 +137,3 @@ function EditCategory(props) {
 		</div>
 	);
 }
-
-const mapStateToProps = (state, props) => ({
-	categorySelected: findCategoryById(state, props),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-	updateCategory: (payload) => dispatch(doUpdateCategoryRequest(payload)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(EditCategory);
